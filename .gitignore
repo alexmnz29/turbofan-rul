@@ -1,0 +1,31 @@
+# Data (download instructions in data/README.md)
+data/*
+!data/README.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Models & experiment outputs
+models/
+outputs/
+mlruns/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
