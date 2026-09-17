@@ -4,6 +4,8 @@ Working notes for the ramp-up phase, one file per level, ordered from fundamenta
 
 Read the Saxena et al. (2008) paper first — it explains how the data was generated and what each subset means.
 
+[00-notebook-01-fundamentals.md](00-notebook-01-fundamentals.md) covers the pandas, statistics, matplotlib and Python fundamentals behind the EDA notebook, one DIMAP entry per element.
+
 | Level | Topic | Key reading |
 |-------|-------|-------------|
 | [1](01-reliability-statistics.md) | Reliability statistics | Ebeling ch. 2–4; Meeker & Escobar (intro + Weibull) |
