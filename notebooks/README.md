@@ -7,7 +7,7 @@ Planned sequence:
 | Notebook | Content | Study level |
 |----------|---------|-------------|
 | `01_eda_fd001.ipynb` | Sensor trajectories of 3–4 engines, constant sensors, life distributions | — |
-| `02_weibull_lifetimes.ipynb` | Weibull fit of failure times, FD001 vs FD003 | 1 |
+| `02_weibull_lifetimes.ipynb` | Lifetime distributions (Weibull, lognormal), hazard, clock-model RUL baseline, FD001 vs FD003, censoring | 1 |
 | `03_linear_baseline.ipynb` | Last-value linear baseline; engine-wise vs row-wise split leakage demo | 2 |
 | `04_window_features.ipynb` | Rolling features across window sizes; separation of healthy vs near-failure | 3 |
 | `05_gradient_boosting.ipynb` | LightGBM working model with early stopping; importances and SHAP | 4 |
