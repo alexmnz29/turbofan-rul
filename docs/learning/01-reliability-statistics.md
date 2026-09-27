@@ -116,7 +116,7 @@ A mixture of two subpopulations (each engine has one mode) instead gives a weigh
 
 **Assumptions.** MTBF as a planning number implicitly assumes constant hazard, since only then does "one failure every MTBF cycles" hold at every age.
 
-**Practical application.** Section 2: FD001 mean 206, median 199, B10 155 (empirical). By cycle 206, 58% of the fleet has already failed, so maintenance scheduled at the MTTF comes too late for most engines. Section 5: the fleet-only "clock" model, which predicts RUL from age using the conditional distribution, gives the baseline that any sensor model in later notebooks must beat, and its error on the test set is the number to remember.
+**Practical application.** Section 2: FD001 mean 206, median 199, B10 155 (empirical). By cycle 206, 58% of the fleet has already failed, so maintenance scheduled at the MTTF comes too late for most engines. Section 5: the fleet-only "clock" model, which predicts RUL from age using the conditional distribution, gives the baseline that any sensor model must beat. Its test-set error is the reference for the final results; during development the comparison is made out-of-fold on the training engines.
 
 *Self-check: for the Weibull3 fit of FD001, write MTTF, median and $B_{10}$ without running the cell, then check.*
 
@@ -172,7 +172,7 @@ Concretely, the notebook should end with answers to:
 
 1. Which family describes FD001 lifetimes, and does it matter where zero is placed (two- vs three-parameter Weibull)?
 2. Is the hazard increasing (wear-out only), and where does it start to rise?
-3. What RUL error does a fleet-only "clock" model achieve on the FD001 test set (RMSE and PHM08 score)? This is the baseline for notebook 03 onward.
+3. What RUL error does a fleet-only "clock" model achieve on the FD001 test set (RMSE and PHM08 score)? This is the reference for the final results; during development the clock is recomputed out-of-fold on the training engines.
 4. How does a second fault mode (FD003) change shape, tail and fit quality?
 5. How should censored test engines enter a survival estimate?
 

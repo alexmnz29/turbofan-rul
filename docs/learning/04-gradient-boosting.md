@@ -1,4 +1,4 @@
-# Level 4 — Gradient boosting
+# Level 4: Gradient boosting
 
 **Reading:** Hastie, Tibshirani & Friedman, *The Elements of Statistical Learning*, ch. 10. Chen & Guestrin (2016), *XGBoost*. Molnar, *Interpretable Machine Learning* (free online): permutation importance and SHAP chapters.
 

@@ -1,4 +1,4 @@
-# Level 3 — Time series and window features
+# Level 3: Time series and window features
 
 **Reading:** Hyndman & Athanasopoulos, *Forecasting: Principles and Practice* (free online), ch. 2–3.
 

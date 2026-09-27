@@ -1,8 +1,80 @@
 # turbofan-rul
 
-Remaining Useful Life (RUL) prediction for aircraft turbofan engines using the NASA C-MAPSS run-to-failure dataset.
+Predictive maintenance for a fleet of aircraft turbofan engines, built on the NASA C-MAPSS run-to-failure dataset: from sensor data to a weekly maintenance plan, run as a batch pipeline.
 
-The goal is not just to minimize RMSE on a benchmark: the project frames RUL prediction as a maintenance decision problem, where predicting a failure **too late** (unplanned downtime) costs far more than predicting it **too early** (premature intervention). Models are trained and evaluated against an asymmetric cost function, following the PHM08 challenge scoring defined in Saxena et al. (2008).
+Most C-MAPSS projects stop at a Remaining Useful Life (RUL) prediction and an RMSE. This one treats RUL as an input to a decision. A late prediction means an unplanned failure, an early one wastes engine life, and the shop can only take so many engines per week. The project predicts RUL with its uncertainty, turns it into a maintenance plan under those constraints, and measures the result in maintenance cost over a simulated period of operation.
+
+## Scenario
+
+The project answers a concrete operational problem. The numbers are illustrative assumptions, not sourced from an operator, and the cost and capacity parameters are varied in a sensitivity analysis.
+
+- **Fleet.** 100 engines of one type, operating in a single flight condition (C-MAPSS FD001). Each engine flies one cycle per day and reports one reading of 21 sensors per cycle.
+- **Planning.** Every Monday the maintenance planning team needs the list of engines to send to the shop that week.
+- **Capacity.** The shop takes at most 5 engines per week.
+- **Costs**, in units of one planned shop visit:
+  - An unplanned failure costs 10 (in-service shutdown, aircraft on ground, secondary damage).
+  - Removing an engine early throws away its remaining cycles, valued at 1/200 per cycle, since a shop visit buys roughly 200 cycles of life.
+- **Change.** Partway through, a second fleet enters service with an additional fault mode (C-MAPSS FD003). The system has to notice that the new engines do not behave like the ones it was trained on.
+
+**Success measure:** total maintenance cost over the simulated period, with the number of unplanned failures and the cycles wasted by early removals, compared against two reference policies: the age-only "clock" model and a model trained with plain MSE.
+
+## From requirements to components
+
+Every component exists because the scenario needs it.
+
+| Requirement | Component |
+|---|---|
+| Estimate how long each engine has left, with its uncertainty | RUL model with quantile outputs (gradient boosting on window features) |
+| Decide which engines go to the shop given 5 slots per week | Mixed-integer optimization of the weekly shop schedule |
+| A new plan every week without manual steps | Batch pipeline: ingest, features, scoring, planning |
+| Know which model version produced each plan | Experiment tracking and model registry (MLflow) |
+| A code change must not silently break the pipeline | Continuous integration with unit tests and a smoke run |
+| Detect when the fleet no longer looks like the training data | Drift monitoring on inputs and predictions, with a retraining trigger |
+| Show that the system actually lowers cost | Replay of a held-out fleet week by week, with realized cost |
+
+## Plan and status
+
+### Part 1: Prediction
+
+| # | Step | Output | Status |
+|---|---|---|---|
+| 1 | EDA: sensor screening, RUL label design | Sensor list, RUL cap of 125 | Done ([notebook 01](notebooks/01_eda_fd001.ipynb)) |
+| 2 | Lifetime distributions and the clock baseline | Weibull3 fit, age-only RUL baseline | Done ([notebook 02](notebooks/02_weibull_lifetimes.ipynb)) |
+| 3 | Linear baseline and the validation protocol | Engine-wise validation, leakage demo, first tracked runs, CI | Next |
+| 4 | Window features and gradient boosting | LightGBM working model, SHAP | Planned |
+| 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Planned |
+| 6 | Sequence models (optional) | Small LSTM, kept only if it clearly beats boosting | Optional |
+
+### Part 2: Decision
+
+| # | Step | Output | Status |
+|---|---|---|---|
+| 7 | Weekly maintenance planning | Per-engine threshold rule, greedy heuristic and MILP under shop capacity, compared on cost | Planned |
+
+### Part 3: Production
+
+| # | Step | Output | Status |
+|---|---|---|---|
+| 8 | Batch pipeline and simulation | One-command weekly run (ingest, score, plan), model registry, replay of a held-out fleet with realized cost, drift incident with FD003 and retraining | Planned |
+
+A design decisions document will record the main choices and the alternatives left out.
+
+## Results so far
+
+Age-only clock model (conditional median residual life under a three-parameter Weibull), FD001 test set:
+
+| Model | RMSE | PHM08 score |
+|---|---|---|
+| Naive clock (mean lifetime − age) | 40.2 | 25 528 |
+| Clock, Weibull3 conditional median | 35.9 | 6 820 |
+
+This is the reference for the final results table. The FD001 test set is the final exam: it is used once, at the end, for the results table in the README. During development, models are compared with engine-wise cross-validation on the training engines, using out-of-fold RMSE and PHM08, and the clock is recomputed under the same protocol. PHM08 is the asymmetric score from Saxena et al. (2008): late predictions are penalized more than early ones, and large errors grow exponentially.
+
+## Out of scope
+
+- **Online REST API.** Planning happens weekly, so batch scoring matches how the predictions are used.
+- **Kubernetes, feature store, workflow orchestrator.** The data is small and static, and none of these would solve a problem the scenario has.
+- **Other C-MAPSS subsets as separate benchmarks.** FD003 plays the role of the drift incident. FD002 and FD004 (six operating regimes) are a possible extension, not a goal.
 
 ## Dataset
 
@@ -19,23 +91,17 @@ Each engine starts with random initial wear and degrades until failure. Sensors 
 
 See [data/README.md](data/README.md) for download instructions. Raw data is not committed to the repo.
 
-## Approach
-
-1. **EDA** — sensor trajectories per engine, constant/uninformative sensors, life distributions (Weibull fits), regime clustering.
-2. **Baselines** — linear regression on last-value features, validated with engine-wise splits (never row-wise: rows from the same engine leak).
-3. **Window features + gradient boosting** — rolling means, slopes and dispersion over multiple window sizes, fed to LightGBM with early stopping on a held-out engine split. This is the working model.
-4. **Asymmetric cost** — quantile objectives and a custom cost function (cost of unplanned stop vs. cost of early intervention), compared against the MSE-trained model on the PHM08 score.
-5. **Sequence models (optional)** — a small LSTM under the same validation protocol; kept only if it clearly beats boosting.
-
 ## Project structure
 
 ```
 ├── data/               # raw + processed data (gitignored, see data/README.md)
-├── docs/learning/      # study notes: reliability stats → boosting → asymmetric losses
-├── notebooks/          # exploratory analysis, numbered in order
+├── docs/learning/      # study notes, one level per step of the plan
+├── notebooks/          # exploration and decisions, numbered in order
 ├── src/turbofan_rul/   # importable package: loading, features, evaluation
 └── tests/
 ```
+
+Planned as the production part is built: a pipeline module in `src/turbofan_rul/`, entry-point scripts for training and the weekly run, and a single command that runs the whole pipeline end to end.
 
 ## Setup
 
@@ -63,6 +129,9 @@ uv run pytest
 - Heimes, F. O. (2008). *Recurrent neural networks for remaining useful life estimation.* PHM08.
 - Zheng, S., et al. (2017). *Long Short-Term Memory Network for Remaining Useful Life estimation.* ICPHM.
 - Li, X., Ding, Q., & Sun, J.-Q. (2018). *Remaining useful life estimation in prognostics using deep convolution neural networks.* Reliability Engineering & System Safety.
+- Jardine, A. K. S., & Tsang, A. H. C. (2013). *Maintenance, Replacement, and Reliability: Theory and Applications* (2nd ed.). CRC Press.
+- Huyen, C. (2022). *Designing Machine Learning Systems.* O'Reilly.
+- Sculley, D., et al. (2015). *Hidden Technical Debt in Machine Learning Systems.* NeurIPS.
 
 ## License
 
