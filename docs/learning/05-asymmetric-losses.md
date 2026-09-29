@@ -12,7 +12,7 @@
 
 Define the maintenance cost function from the README scenario (unplanned failure = 10 shop visits, each wasted cycle = 1/200 shop visit), retrain with it or with a quantile objective, and compare against the MSE model. The quantile outputs feed the planning step in level 7, so calibration matters as much as the score. This is where the project stops being a tutorial.
 
-Notebook: `notebooks/06_asymmetric_cost.ipynb` · Code: `src/turbofan_rul/evaluation.py`
+Notebook: `notebooks/05_asymmetric_cost.ipynb` · Code: `src/turbofan_rul/evaluation.py`
 
 ## Open questions
 

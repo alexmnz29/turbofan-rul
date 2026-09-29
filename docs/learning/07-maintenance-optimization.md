@@ -18,7 +18,7 @@ Turn RUL predictions into a weekly shop plan for the README scenario (5 slots pe
 
 If the MILP does not beat the greedy heuristic under realistic capacity, say so: that is a result, and it decides whether the optimizer stays in the pipeline.
 
-Notebook: `notebooks/08_maintenance_planning.ipynb`
+Notebook: `notebooks/06_maintenance_planning.ipynb`
 
 ## Open questions
 

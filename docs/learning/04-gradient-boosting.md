@@ -12,7 +12,7 @@
 
 LightGBM on the window features, early stopping on an engine-wise holdout. This becomes the working model.
 
-Notebook: `notebooks/05_gradient_boosting.ipynb`
+Notebook: `notebooks/04_features_and_boosting.ipynb` (shared with level 3)
 
 ## Open questions
 

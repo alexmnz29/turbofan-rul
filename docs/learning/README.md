@@ -1,6 +1,6 @@
 # Study notes (DiMAP method)
 
-Working notes, one file per level, following the plan in the project README: levels 1 to 6 build the prediction model, level 7 the maintenance planning, level 8 the production system. Each file has three sections: **Notes** (what I learned, in my own words), **Exercise** (hands-on task on C-MAPSS, with a link to the resulting notebook), and **Open questions**.
+Working notes, one file per level, following the plan in the project README: levels 1 to 5 build the prediction model, level 7 the maintenance planning, level 8 the production system. Level 6 (sequence models) was dropped after the audit of notebooks 01 to 03. Each file has three sections: **Notes** (what I learned, in my own words), **Exercise** (hands-on task on C-MAPSS, with a link to the resulting notebook), and **Open questions**.
 
 Read the Saxena et al. (2008) paper first. It explains how the data was generated and what each subset means.
 
@@ -13,6 +13,5 @@ Read the Saxena et al. (2008) paper first. It explains how the data was generate
 | [3](03-time-series-features.md) | Time series & window features | Hyndman & Athanasopoulos ch. 2 to 3 |
 | [4](04-gradient-boosting.md) | Gradient boosting | ESL ch. 10; Chen & Guestrin (2016); Molnar (SHAP) |
 | [5](05-asymmetric-losses.md) | Asymmetric losses & uncertainty | Koenker & Hallock (2001); Saxena et al. (2008) |
-| [6](06-sequence-models.md) | Sequence models (optional) | Heimes (2008); Zheng et al. (2017); Li et al. (2018) |
 | [7](07-maintenance-optimization.md) | Maintenance planning and optimization | Jardine & Tsang (2013); Williams (2013) |
 | [8](08-ml-in-production.md) | Running the model in production | Huyen (2022) ch. 7 to 9; Sculley et al. (2015); Rabanser et al. (2019) |

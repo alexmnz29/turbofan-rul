@@ -43,23 +43,26 @@ Every component exists because the scenario needs it.
 | 1 | EDA: sensor screening, RUL label design | Sensor list, RUL cap of 125 | Done ([notebook 01](notebooks/01_eda_fd001.ipynb)) |
 | 2 | Lifetime distributions and the clock baseline | Weibull3 fit, age-only RUL baseline | Done ([notebook 02](notebooks/02_weibull_lifetimes.ipynb)) |
 | 3 | Linear baseline and the validation protocol | Engine-wise validation, leakage demo, first tracked runs, CI | Done ([notebook 03](notebooks/03_linear_baseline.ipynb)) |
-| 4 | Window features and gradient boosting | LightGBM working model, SHAP | Next |
+| 4 | Window features and gradient boosting (one notebook) | LightGBM working model on window features, linear model on the same features as control, SHAP | Next |
 | 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Planned |
-| 6 | Sequence models (optional) | Small LSTM, kept only if it clearly beats boosting | Optional |
+
+Sequence models (LSTM) were dropped from the plan: the project's value is in the decision and production layers, and the time goes there.
 
 ### Part 2: Decision
 
 | # | Step | Output | Status |
 |---|---|---|---|
-| 7 | Weekly maintenance planning | Per-engine threshold rule, greedy heuristic and MILP under shop capacity, compared on cost | Planned |
+| 6 | Weekly maintenance planning | Per-engine threshold rule, greedy heuristic and MILP under shop capacity, compared on cost | Planned |
 
 ### Part 3: Production
 
 | # | Step | Output | Status |
 |---|---|---|---|
-| 8 | Batch pipeline and simulation | One-command weekly run (ingest, score, plan), model registry, replay of a held-out fleet with realized cost, drift incident with FD003 and retraining | Planned |
+| 7 | Batch pipeline and simulation | One-command weekly run (ingest, score, plan), model registry, replay of a held-out fleet with realized cost, drift incident with FD003 and retraining | Planned |
 
 A design decisions document will record the main choices and the alternatives left out.
+
+Working rules, set after an audit of the first three notebooks: every notebook ends in one Decisions table and carries at most five reading cells, theory lives in the study notes, every model is reported as the mean over 30 cut draws with per-fold scores, and a difference between models counts only if it clearly exceeds the fold-to-fold spread (about 2 cycles of RMSE).
 
 ## Results so far
 
@@ -70,7 +73,7 @@ A design decisions document will record the main choices and the alternatives le
 | Clock, capped at 125 | 32.0 ± 0.5 | 7 359 ± 989 |
 | Linear regression, 12 sensors | 25.0 ± 0.4 | 1 709 ± 116 |
 
-The linear model beats the clock on every draw, but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking.
+The linear model beats the clock on every draw and in every fold (gap 4 to 9 cycles across folds), but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking. Development scores compare with the true, uncapped remaining life, so absolute RMSE is higher than in the literature, which scores against capped labels; the final test-set table will report both.
 
 **Test set reference** (notebook 02). Age-only clock model (conditional median residual life under a three-parameter Weibull), FD001 test set:
 
@@ -143,9 +146,6 @@ uv run pytest
 ## References
 
 - Saxena, A., Goebel, K., Simon, D., & Eklund, N. (2008). *Damage propagation modeling for aircraft engine run-to-failure simulation.* PHM08.
-- Heimes, F. O. (2008). *Recurrent neural networks for remaining useful life estimation.* PHM08.
-- Zheng, S., et al. (2017). *Long Short-Term Memory Network for Remaining Useful Life estimation.* ICPHM.
-- Li, X., Ding, Q., & Sun, J.-Q. (2018). *Remaining useful life estimation in prognostics using deep convolution neural networks.* Reliability Engineering & System Safety.
 - Jardine, A. K. S., & Tsang, A. H. C. (2013). *Maintenance, Replacement, and Reliability: Theory and Applications* (2nd ed.). CRC Press.
 - Huyen, C. (2022). *Designing Machine Learning Systems.* O'Reilly.
 - Sculley, D., et al. (2015). *Hidden Technical Debt in Machine Learning Systems.* NeurIPS.
