@@ -1,5 +1,7 @@
 # turbofan-rul
 
+[![CI](https://github.com/alexmnz29/turbofan-rul/actions/workflows/ci.yml/badge.svg)](https://github.com/alexmnz29/turbofan-rul/actions/workflows/ci.yml)
+
 Predictive maintenance for a fleet of aircraft turbofan engines, built on the NASA C-MAPSS run-to-failure dataset: from sensor data to a weekly maintenance plan, run as a batch pipeline.
 
 Most C-MAPSS projects stop at a Remaining Useful Life (RUL) prediction and an RMSE. This one treats RUL as an input to a decision. A late prediction means an unplanned failure, an early one wastes engine life, and the shop can only take so many engines per week. The project predicts RUL with its uncertainty, turns it into a maintenance plan under those constraints, and measures the result in maintenance cost over a simulated period of operation.
@@ -40,8 +42,8 @@ Every component exists because the scenario needs it.
 |---|---|---|---|
 | 1 | EDA: sensor screening, RUL label design | Sensor list, RUL cap of 125 | Done ([notebook 01](notebooks/01_eda_fd001.ipynb)) |
 | 2 | Lifetime distributions and the clock baseline | Weibull3 fit, age-only RUL baseline | Done ([notebook 02](notebooks/02_weibull_lifetimes.ipynb)) |
-| 3 | Linear baseline and the validation protocol | Engine-wise validation, leakage demo, first tracked runs, CI | Next |
-| 4 | Window features and gradient boosting | LightGBM working model, SHAP | Planned |
+| 3 | Linear baseline and the validation protocol | Engine-wise validation, leakage demo, first tracked runs, CI | Done ([notebook 03](notebooks/03_linear_baseline.ipynb)) |
+| 4 | Window features and gradient boosting | LightGBM working model, SHAP | Next |
 | 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Planned |
 | 6 | Sequence models (optional) | Small LSTM, kept only if it clearly beats boosting | Optional |
 
@@ -61,7 +63,16 @@ A design decisions document will record the main choices and the alternatives le
 
 ## Results so far
 
-Age-only clock model (conditional median residual life under a three-parameter Weibull), FD001 test set:
+**Development protocol** (notebook 03). Five engine-wise folds on the 100 FD001 training engines, stratified by lifetime. Each validation engine is scored at 10 cut points with at least 30 cycles observed and 1 to 150 cycles of true remaining life, against the true, uncapped RUL. Scores are averaged over 30 draws of cut points:
+
+| Model | RMSE | PHM08 per 100 predictions |
+|---|---|---|
+| Clock, capped at 125 | 32.0 ± 0.5 | 7 359 ± 989 |
+| Linear regression, 12 sensors | 25.0 ± 0.4 | 1 709 ± 116 |
+
+The linear model beats the clock on every draw, but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking.
+
+**Test set reference** (notebook 02). Age-only clock model (conditional median residual life under a three-parameter Weibull), FD001 test set:
 
 | Model | RMSE | PHM08 score |
 |---|---|---|
@@ -115,6 +126,12 @@ Download the C-MAPSS data (see [data/README.md](data/README.md)), then start wit
 
 ```bash
 uv run jupyter lab
+```
+
+Browse the tracked runs (MLflow, stored locally and not committed):
+
+```bash
+uv run mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 
 Run tests:

@@ -17,6 +17,28 @@ def phm08_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.sum(np.where(d < 0, np.exp(-d / 13) - 1, np.exp(d / 10) - 1)))
 
 
+def phm08_per_100(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """PHM08 score rescaled to 100 predictions.
+
+    The raw score is a sum, so it grows with the number of predictions. Rescaling puts
+    protocols with different numbers of cut points on the scale of the 100-engine test set.
+    """
+    return 100 * phm08_score(y_true, y_pred) / len(np.asarray(y_true))
+
+
+def summarize(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    """The scores reported for every model: RMSE, PHM08 per 100 predictions, mean error.
+
+    Mean error is pred - true: positive means late on average, the expensive direction.
+    """
+    d = np.asarray(y_pred, dtype=float) - np.asarray(y_true, dtype=float)
+    return {
+        "rmse": rmse(y_true, y_pred),
+        "phm08_per_100": phm08_per_100(y_true, y_pred),
+        "mean_error": float(d.mean()),
+    }
+
+
 def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     d = np.asarray(y_pred, dtype=float) - np.asarray(y_true, dtype=float)
     return float(np.sqrt(np.mean(d**2)))

@@ -24,6 +24,7 @@ venv/
 models/
 outputs/
 mlruns/
+mlflow.db
 
 # OS / editor
 .DS_Store
