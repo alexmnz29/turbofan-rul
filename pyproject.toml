@@ -15,6 +15,7 @@ dependencies = [
     "matplotlib>=3.9",
     "seaborn>=0.13",
     "mlflow>=3.16.1",
+    "shap>=0.52.0",
 ]
 
 [dependency-groups]
