@@ -30,3 +30,23 @@ RANDOM_SEED = 0
 FD001_RAW_SENSORS = [f"sensor_{i}" for i in (2, 3, 4, 7, 8, 11, 12, 13, 15, 17, 20, 21)]
 # Trend sign differs by engine; informative only as deviation from the engine's own baseline.
 FD001_DEVIATION_SENSORS = ["sensor_9", "sensor_14"]
+
+# Window features (notebook 04). Trailing windows only; see features.py.
+FEATURE_WINDOWS = (5, 10, 30)
+SLOPE_WINDOWS = (10, 30)
+BASELINE_CYCLES = 20  # an engine's healthy reference: mean of its first cycles
+
+# Working model (notebook 04): LightGBM on the window features.
+LGBM_PARAMS = {
+    "n_estimators": 2000,
+    "learning_rate": 0.03,
+    "num_leaves": 15,
+    "min_child_samples": 50,
+    "subsample": 0.8,
+    "subsample_freq": 1,
+    "colsample_bytree": 0.8,
+    "verbose": -1,
+    "random_state": 0,
+}
+EARLY_STOPPING_ROUNDS = 100
+MONITOR_ENGINES = 16  # engines held out of each training fold to monitor early stopping

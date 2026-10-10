@@ -43,8 +43,8 @@ Every component exists because the scenario needs it.
 | 1 | EDA: sensor screening, RUL label design | Sensor list, RUL cap of 125 | Done ([notebook 01](notebooks/01_eda_fd001.ipynb)) |
 | 2 | Lifetime distributions and the clock baseline | Weibull3 fit, age-only RUL baseline | Done ([notebook 02](notebooks/02_weibull_lifetimes.ipynb)) |
 | 3 | Linear baseline and the validation protocol | Engine-wise validation, leakage demo, first tracked runs, CI | Done ([notebook 03](notebooks/03_linear_baseline.ipynb)) |
-| 4 | Window features and gradient boosting (one notebook) | LightGBM working model on window features, linear model on the same features as control, SHAP | Next |
-| 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Planned |
+| 4 | Window features and gradient boosting (one notebook) | LightGBM working model on window features, linear model on the same features as control, SHAP | Done ([notebook 04](notebooks/04_features_and_boosting.ipynb)) |
+| 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Next |
 
 Sequence models (LSTM) were dropped from the plan: the project's value is in the decision and production layers, and the time goes there.
 
@@ -71,9 +71,12 @@ Working rules, set after an audit of the first three notebooks: every notebook e
 | Model | RMSE | PHM08 per 100 predictions |
 |---|---|---|
 | Clock, capped at 125 | 32.0 ± 0.5 | 7 359 ± 989 |
-| Linear regression, 12 sensors | 25.0 ± 0.4 | 1 709 ± 116 |
+| Linear regression, 12 raw sensors | 25.0 ± 0.4 | 1 709 ± 116 |
+| Linear regression, 99 window features | 19.3 ± 0.4 | 660 |
+| LightGBM, 99 window features | 12.7 ± 0.3 | 239 |
+| **LightGBM, 40 pruned window features** (working model) | **12.4 ± 0.3** | **230** |
 
-The linear model beats the clock on every draw and in every fold (gap 4 to 9 cycles across folds), but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking. Development scores compare with the true, uncapped remaining life, so absolute RMSE is higher than in the literature, which scores against capped labels; the final test-set table will report both.
+The linear model beats the clock on every draw and in every fold (gap 4 to 9 cycles across folds), but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. Window features (slopes over 30 cycles, deviation from each engine's own baseline) carry most of the signal; on raw readings LightGBM does no better than the linear model (24.8). LightGBM on the features removes the bias: within 5 cycles everywhere below the cap. Its remaining worst errors are short-lived engines whose degradation shows late. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking. Development scores compare with the true, uncapped remaining life, so absolute RMSE is higher than in the literature, which scores against capped labels; the final test-set table will report both.
 
 **Test set reference** (notebook 02). Age-only clock model (conditional median residual life under a three-parameter Weibull), FD001 test set:
 

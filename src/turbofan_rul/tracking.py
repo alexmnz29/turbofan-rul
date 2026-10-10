@@ -66,14 +66,38 @@ def git_commit() -> str:
         return "unknown"
 
 
+def delete_runs_named(run_name: str) -> int:
+    """Delete every run with this name in the current experiment. Returns how many."""
+    experiment = mlflow.get_experiment_by_name(mlflow.get_experiment(_current_experiment_id()).name)
+    runs = mlflow.search_runs(
+        experiment_ids=[experiment.experiment_id],
+        filter_string=f"tags.mlflow.runName = '{run_name}'",
+        output_format="list",
+    )
+    for run in runs:
+        mlflow.delete_run(run.info.run_id)
+    return len(runs)
+
+
+def _current_experiment_id() -> str:
+    return mlflow.tracking.fluent._get_experiment_id()
+
+
 def log_model_run(
     run_name: str,
     params: dict,
     metrics: dict,
     predictions: pd.DataFrame | None = None,
     tags: dict | None = None,
+    replace: bool = True,
 ) -> str:
-    """Log one scored model: protocol and model parameters, metrics, and OOF predictions."""
+    """Log one scored model: protocol and model parameters, metrics, and OOF predictions.
+
+    With `replace`, earlier runs with the same name are deleted first, so re-running a
+    notebook updates its runs instead of adding duplicates.
+    """
+    if replace:
+        delete_runs_named(run_name)
     with mlflow.start_run(run_name=run_name) as run:
         mlflow.log_params({**protocol_params(), **params})
         mlflow.log_metrics(metrics)
