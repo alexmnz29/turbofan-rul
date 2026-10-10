@@ -50,11 +50,17 @@ def maintenance_cost(
     cost_late: float,
     cost_early_per_cycle: float,
 ) -> float:
-    """Business-flavored cost, to be defined properly in level 5.
+    """Per-prediction maintenance cost (level 5 sketch; the decision-level cost with shop
+    capacity lives in level 7).
 
-    Sketch: a late prediction triggers one unplanned stop (flat cost);
-    an early one wastes the remaining useful cycles (per-cycle cost).
+    A late prediction (pred > true) triggers one unplanned failure, a flat cost; an early
+    one (pred < true) wastes the cycles between the prediction and the true failure, at a
+    per-cycle cost. An exact prediction costs nothing.
+
+    With the README scenario (failure = 10 shop visits, wasted cycle = 1/200 visit) this
+    per-prediction cost is nearly minimised by predicting zero, because it omits the cost
+    of the shop visit itself and the capacity limit: those enter at the decision level.
     """
     d = np.asarray(y_pred, dtype=float) - np.asarray(y_true, dtype=float)
-    late = d >= 0
+    late = d > 0
     return float(np.sum(late) * cost_late + np.sum(-d[~late]) * cost_early_per_cycle)
