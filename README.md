@@ -44,7 +44,7 @@ Every component exists because the scenario needs it.
 | 2 | Lifetime distributions and the clock baseline | Weibull3 fit, age-only RUL baseline | Done ([notebook 02](notebooks/02_weibull_lifetimes.ipynb)) |
 | 3 | Linear baseline and the validation protocol | Engine-wise validation, leakage demo, first tracked runs, CI | Done ([notebook 03](notebooks/03_linear_baseline.ipynb)) |
 | 4 | Window features and gradient boosting (one notebook) | LightGBM working model on window features, linear model on the same features as control, SHAP | Done ([notebook 04](notebooks/04_features_and_boosting.ipynb)) |
-| 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Next |
+| 5 | Asymmetric cost and quantile outputs | RUL quantiles, comparison with MSE under the scenario's costs | Done ([notebook 05](notebooks/05_asymmetric_cost.ipynb)) |
 
 Sequence models (LSTM) were dropped from the plan: the project's value is in the decision and production layers, and the time goes there.
 
@@ -52,7 +52,7 @@ Sequence models (LSTM) were dropped from the plan: the project's value is in the
 
 | # | Step | Output | Status |
 |---|---|---|---|
-| 6 | Weekly maintenance planning | Per-engine threshold rule, greedy heuristic and MILP under shop capacity, compared on cost | Planned |
+| 6 | Weekly maintenance planning | Per-engine threshold rule, greedy heuristic and MILP under shop capacity, compared on cost | Next |
 
 ### Part 3: Production
 
@@ -76,7 +76,9 @@ Working rules, set after an audit of the first three notebooks: every notebook e
 | LightGBM, 99 window features | 12.7 ± 0.3 | 239 |
 | **LightGBM, 40 pruned window features** (working model) | **12.4 ± 0.3** | **230** |
 
-The linear model beats the clock on every draw and in every fold (gap 4 to 9 cycles across folds), but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. Window features (slopes over 30 cycles, deviation from each engine's own baseline) carry most of the signal; on raw readings LightGBM does no better than the linear model (24.8). LightGBM on the features removes the bias: within 5 cycles everywhere below the cap. Its remaining worst errors are short-lived engines whose degradation shows late. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking. Development scores compare with the true, uncapped remaining life, so absolute RMSE is higher than in the literature, which scores against capped labels; the final test-set table will report both.
+The linear model beats the clock on every draw and in every fold (gap 4 to 9 cycles across folds), but is systematically late between 25 and 75 cycles from failure, and the clock is still better on engines with typical lifetimes. Window features (slopes over 30 cycles, deviation from each engine's own baseline) carry most of the signal; on raw readings LightGBM does no better than the linear model (24.8). LightGBM on the features removes the bias: within 5 cycles everywhere below the cap. Its remaining worst errors are short-lived engines whose degradation shows late.
+
+**Uncertainty** (notebook 05). Retraining the working model with asymmetric losses (late errors weighted 2 to 8 times, or quantile objectives) changes the error mix but not the PHM08 score, which is carried by a few dozen engines whose degradation the features do not yet see. The model therefore keeps squared error for the point prediction and adds a prediction interval: LightGBM quantile models (0.1 and 0.9, trained on the uncapped label) with a split-conformal correction, covering 73% of outcomes overall and 76 to 85% in the last 50 cycles. The interval width grows from about 10 cycles near failure to over 60 for engines predicted above 100 cycles, and it is the input the planning step uses. The scenario's per-prediction cost turned out to be degenerate (it rewards predicting zero), which confirms that the asymmetry belongs in the decision, with the shop-visit cost and the capacity limit. A row-wise split would have inflated flexible models by 12 to 20 cycles of RMSE and reversed the ranking. Development scores compare with the true, uncapped remaining life, so absolute RMSE is higher than in the literature, which scores against capped labels; the final test-set table will report both.
 
 **Test set reference** (notebook 02). Age-only clock model (conditional median residual life under a three-parameter Weibull), FD001 test set:
 

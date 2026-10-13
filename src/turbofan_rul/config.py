@@ -50,3 +50,22 @@ LGBM_PARAMS = {
 }
 EARLY_STOPPING_ROUNDS = 100
 MONITOR_ENGINES = 16  # engines held out of each training fold to monitor early stopping
+
+# Pruned feature set from notebook 04: permutation importance >= 0.05 cycles on fold 0.
+FD001_PRUNED_FEATURES = [
+    "sensor_4_mean5",
+    "sensor_2_mean10", "sensor_3_mean10", "sensor_4_mean10", "sensor_15_mean10",
+    "sensor_17_mean10", "sensor_20_mean10", "sensor_21_mean10",
+    "sensor_2_mean30", "sensor_3_mean30", "sensor_4_mean30", "sensor_7_mean30",
+    "sensor_8_mean30", "sensor_11_mean30", "sensor_12_mean30", "sensor_15_mean30",
+    "sensor_17_mean30", "sensor_20_mean30",
+    "sensor_11_slope10", "sensor_13_slope10",
+    "sensor_4_slope30", "sensor_11_slope30", "sensor_12_slope30", "sensor_17_slope30",
+    "sensor_20_slope30",
+    "sensor_7_std30",
+    "sensor_3_dev", "sensor_4_dev", "sensor_7_dev", "sensor_8_dev", "sensor_11_dev",
+    "sensor_12_dev", "sensor_13_dev", "sensor_15_dev", "sensor_17_dev", "sensor_20_dev",
+    "sensor_21_dev",
+    "sensor_9_absdev", "sensor_14_absdev",
+    "age",
+]
